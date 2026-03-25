@@ -19,7 +19,10 @@ export const placeOrder = async (userId: string) => {
     return {
       product: item.product._id,
       quantity: item.quantity,
-      price: price, // snapshot
+      price: price,
+
+      title: item.product.title,
+      image: item.product.images?.[0] || "",
     };
   });
 

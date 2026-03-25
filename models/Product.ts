@@ -1,6 +1,18 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document, models, model } from "mongoose";
 
-const productSchema = new mongoose.Schema(
+export interface IProduct extends Document {
+  title: string;
+  description?: string;
+  price: number;
+  images: string[];
+  category?: string;
+  seller: mongoose.Types.ObjectId;
+  isApproved: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const productSchema = new Schema<IProduct>(
   {
     title: {
       type: String,
@@ -27,17 +39,20 @@ const productSchema = new mongoose.Schema(
     },
 
     seller: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     isApproved: {
       type: Boolean,
-      default: true,
+      default: false, 
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Product || mongoose.model("Product", productSchema);
+const Product =
+  models.Product || model<IProduct>("Product", productSchema);
+
+export default Product;

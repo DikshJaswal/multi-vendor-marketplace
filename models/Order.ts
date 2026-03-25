@@ -14,16 +14,12 @@ const orderSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
         },
+        quantity: Number,
+        price: Number,
 
-        quantity: {
-          type: Number,
-          required: true,
-        },
-
-        price: {
-          type: Number,
-          required: true, // snapshot price
-        },
+        // ✅ Snapshot fields (already added earlier)
+        title: String,
+        image: String,
       },
     ],
 
@@ -32,18 +28,19 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    status: {
-      type: String,
-      enum: ["pending", "shipped", "delivered"],
-      default: "pending",
-    },
-
     shippingAddress: {
       type: String,
-      required: true,
+    },
+
+    // 🔥 ADD THIS
+    status: {
+      type: String,
+      enum: ["pending", "confirmed", "shipped", "delivered"],
+      default: "pending",
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Order || mongoose.model("Order", orderSchema);
+export default mongoose.models.Order ||
+  mongoose.model("Order", orderSchema);
