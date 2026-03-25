@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getProductById, updateProduct } from "@/services/product.service";
 import { getAuthSession } from "@/lib/auth";
@@ -6,7 +6,7 @@ import Product from "@/models/Product";
 
 // ✅ GET PRODUCT + RELATED PRODUCTS
 export async function GET(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -39,7 +39,7 @@ export async function GET(
 
 // ✅ UPDATE (PATCH)
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -73,10 +73,10 @@ export async function PATCH(
   }
 }
 
-// ✅ DELETE
+// ✅ DELETE (FIXED)
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -87,7 +87,9 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const product = await Product.findById(params.id);
+    const { id } = await context.params;
+
+    const product = await Product.findById(id);
 
     if (!product) {
       return NextResponse.json({ message: "Not found" }, { status: 404 });
@@ -97,7 +99,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    await Product.findByIdAndDelete(params.id);
+    await Product.findByIdAndDelete(id);
 
     return NextResponse.json({ message: "Deleted" });
 
@@ -106,10 +108,10 @@ export async function DELETE(
   }
 }
 
-// ✅ PUT
+// ✅ PUT (FIXED)
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -120,7 +122,9 @@ export async function PUT(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const product = await Product.findById(params.id);
+    const { id } = await context.params;
+
+    const product = await Product.findById(id);
 
     if (!product) {
       return NextResponse.json({ message: "Not found" }, { status: 404 });
@@ -133,7 +137,7 @@ export async function PUT(
     const body = await req.json();
 
     const updated = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true }
     );
