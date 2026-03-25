@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton"; // ✅ important
 import { useSearch } from "@/context/SearchContext";
 
 export default function ShopPage() {
@@ -12,6 +13,7 @@ export default function ShopPage() {
 
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
+  // 🔥 Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -20,6 +22,7 @@ export default function ShopPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // 🔥 Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -30,9 +33,10 @@ export default function ShopPage() {
         );
 
         const data = await res.json();
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -43,12 +47,22 @@ export default function ShopPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-4xl font-bold mb-10">Discover Products</h1>
 
+      <h1 className="text-4xl font-bold mb-10">
+        Discover Products
+      </h1>
+
+      {/* 🔥 SKELETON LOADING */}
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
       ) : products.length === 0 ? (
-        <p className="text-gray-400">No products found</p>
+        <p className="text-gray-400 text-center">
+          No products found
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product: any) => (
@@ -56,6 +70,7 @@ export default function ShopPage() {
           ))}
         </div>
       )}
+
     </div>
   );
 }

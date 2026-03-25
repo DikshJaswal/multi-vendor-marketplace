@@ -10,27 +10,41 @@ export async function POST(req: Request) {
 
     const session = await getAuthSession();
 
+    // 🔐 AUTH CHECK
     if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    if (session.user.role !== "seller") {
+    // 🔐 ONLY APPROVED SELLER CAN ADD
+    if (
+      session.user.role !== "seller" ||
+      !session.user.isSellerApproved
+    ) {
       return NextResponse.json(
-        { message: "Only seller can create products" },
+        { message: "Seller not approved" },
         { status: 403 }
       );
     }
 
     const body = await req.json();
 
+    // 🔥 CREATE PRODUCT (PENDING BY DEFAULT)
     const product = await createProduct({
       ...body,
       seller: session.user.id,
+      isApproved: false,
     });
 
     return NextResponse.json(product);
+
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    return NextResponse.json(
+      { message: error.message },
+      { status: 400 }
+    );
   }
 }
 
@@ -41,7 +55,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
 
-    let query: any = {};
+    const query: any = {
+      isApproved: true, // 🔥 ONLY APPROVED PRODUCTS
+    };
 
     if (search && search.trim() !== "") {
       query.title = {
@@ -50,13 +66,14 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    const products = await Product.find(query).sort({ createdAt: -1 });
+    const products = await Product.find(query).sort({
+      createdAt: -1,
+    });
 
     return NextResponse.json(products);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
-
     return NextResponse.json([]);
   }
 }
